@@ -141,7 +141,12 @@ export const ensureAIUser = mutation({
       .withIndex("by_clerkId", (q) => q.eq("clerkId", "ai-bot"))
       .unique();
 
-    if (existing) return existing._id;
+    if (existing) {
+      if (existing.name !== "Tars AI") {
+        await ctx.db.patch(existing._id, { name: "Tars AI" });
+      }
+      return existing._id;
+    }
 
     return await ctx.db.insert("users", {
       name: "Tars AI",

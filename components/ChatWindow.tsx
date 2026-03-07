@@ -317,7 +317,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
               className="h-10 w-10 rounded-full object-cover border border-black/5"
               alt="Avatar"
             />
-            {!details?.conversation.isGroup && details?.otherUser?.isOnline && (
+            {!details?.conversation.isGroup && !details?.otherUser?.isAI && details?.otherUser?.isOnline && (
               <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 themed-border" style={{ backgroundColor: 'var(--accent)' }} />
             )}
           </div>
@@ -328,7 +328,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
             <p className="text-[12px] font-medium transition-colors themed-text-secondary">
               {details?.conversation.isGroup
                 ? `${details?.groupDetails?.participantCount} members`
-                : details?.otherUser?.isOnline ? "online" : (details?.otherUser?.lastSeen ? formatLastSeen(details.otherUser.lastSeen) : "offline")}
+                : details?.otherUser?.isAI ? "Tars AI" : (details?.otherUser?.isOnline ? "online" : (details?.otherUser?.lastSeen ? formatLastSeen(details.otherUser.lastSeen) : "offline"))}
             </p>
           </div>
         </div>

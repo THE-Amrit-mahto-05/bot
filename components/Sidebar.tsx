@@ -312,7 +312,7 @@ function SidebarChatItem({ conversation, onClick }: { conversation: any; onClick
       <div className="absolute left-0 top-0 bottom-0 w-[4px] transition-opacity opacity-0 group-hover:opacity-100" style={{ backgroundColor: 'var(--accent)' }} />
       <div className="relative shrink-0">
         <img src={imageUrl} className="h-12 w-12 rounded-full object-cover" alt={name} />
-        {!isGroup && conversation.otherUser?.isOnline && (
+        {!isGroup && !conversation.otherUser?.isAI && conversation.otherUser?.isOnline && (
           <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 themed-border" style={{ backgroundColor: 'var(--accent)' }} />
         )}
       </div>
