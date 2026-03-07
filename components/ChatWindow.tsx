@@ -292,10 +292,19 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
   }
 
   const otherUser = details.otherUser;
+  const isWhatsapp = theme === 'whatsapp';
+  const isTelegram = theme === 'telegram';
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden transition-colors duration-200 themed-chat-bg relative">
-      <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] z-0" />
+      <div
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-500
+          ${isWhatsapp
+            ? "bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] opacity-[0.08]"
+            : "bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]"
+          }
+        `}
+      />
 
       {/* Header */}
       <div className="h-[60px] px-6 flex items-center justify-between border-b shadow-sm transition-colors duration-200 themed-bg themed-border z-10">
@@ -381,13 +390,19 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
                 <React.Fragment key={msg._id}>
                   {showDateDivider && (
                     <div className="flex items-center justify-center my-4">
-                      <div className="bg-black/5 text-[11px] font-semibold px-4 py-1 rounded-full tracking-wide themed-text-secondary backdrop-blur-sm">
+                      <div
+                        className="text-[11px] font-semibold px-4 py-1 rounded-full tracking-wide backdrop-blur-sm shadow-sm"
+                        style={{ backgroundColor: 'var(--date-bg)', color: 'var(--date-text)' }}
+                      >
                         {formatDateLabel(msg._creationTime)}
                       </div>
                     </div>
                   )}
                   <div className="flex justify-center my-1 w-full">
-                    <div className="bg-black/5 backdrop-blur-sm text-[12px] px-4 py-1 rounded-full font-medium themed-text-secondary">
+                    <div
+                      className="backdrop-blur-sm text-[12px] px-4 py-1 rounded-full font-medium shadow-sm transition-colors"
+                      style={{ backgroundColor: 'var(--date-bg)', color: 'var(--date-text)' }}
+                    >
                       {msg.body}
                     </div>
                   </div>
@@ -401,7 +416,10 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
               <React.Fragment key={msg._id}>
                 {showDateDivider && (
                   <div className="flex items-center justify-center my-4">
-                    <div className="bg-black/5 text-[11px] font-semibold px-4 py-1 rounded-full tracking-wide themed-text-secondary backdrop-blur-sm">
+                    <div
+                      className="text-[11px] font-semibold px-4 py-1 rounded-full tracking-wide backdrop-blur-sm shadow-sm"
+                      style={{ backgroundColor: 'var(--date-bg)', color: 'var(--date-text)' }}
+                    >
                       {formatDateLabel(msg._creationTime)}
                     </div>
                   </div>
@@ -413,10 +431,10 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
                     <div className="w-8 shrink-0 mr-2 flex justify-end items-end transition-opacity" />
                   )}
 
-                  <div className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 shadow-sm group transition-all duration-200
+                  <div className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 shadow-sm group transition-all duration-200 message-bubble
                     ${isMe
-                      ? "rounded-2xl rounded-tr-sm"
-                      : "rounded-2xl rounded-tl-sm border themed-border"
+                      ? "rounded-2xl rounded-tr-sm message-bubble-me"
+                      : "rounded-2xl rounded-tl-sm border themed-border message-bubble-other"
                     }
                     ${isDeleted ? "opacity-50 grayscale-[0.5]" : ""}
                   `}

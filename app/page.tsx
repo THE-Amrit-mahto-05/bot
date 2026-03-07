@@ -94,10 +94,9 @@ export default function Home() {
 
       <Show when="signed-in">
         <div className="flex h-screen overflow-hidden">
-          {/* Sidebar Area: Mobile Toggle Logic */}
           <div className={`
             ${chatId ? "hidden md:flex" : "flex"} 
-            w-full md:w-[320px] lg:w-[400px] flex-col border-r themed-border themed-bg z-30
+            w-full md:w-[320px] lg:w-[380px] flex-col z-30
           `}>
             <Sidebar />
           </div>

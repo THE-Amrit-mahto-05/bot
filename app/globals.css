@@ -13,6 +13,8 @@
   --bubble-other-text: #000000;
   --border: #e4e4e7;
   --sidebar-hover: #f4f4f5;
+  --date-bg: rgba(0, 0, 0, 0.05);
+  --date-text: #708499;
 }
 
 [data-theme='dark'] {
@@ -28,10 +30,12 @@
   --bubble-other-text: #ffffff;
   --border: #0e1621;
   --sidebar-hover: #242f3d;
+  --date-bg: rgba(255, 255, 255, 0.1);
+  --date-text: #ffffff;
 }
 
 [data-theme='telegram'] {
-  --bg-sidebar: #ffffff;
+  --bg-sidebar: #f5f6f7;
   --bg-chat: #54759e;
   --bg-input: #ffffff;
   --text-primary: #000000;
@@ -41,23 +45,27 @@
   --bubble-me-text: #000000;
   --bubble-other: #ffffff;
   --bubble-other-text: #000000;
-  --border: #e4e4e7;
-  --sidebar-hover: #f4f4f5;
+  --border: #dfdfdf;
+  --sidebar-hover: #f1f1f1;
+  --date-bg: rgba(74, 106, 143, 0.8);
+  --date-text: #ffffff;
 }
 
 [data-theme='whatsapp'] {
   --bg-sidebar: #ffffff;
-  --bg-chat: #e5ddd5;
+  --bg-chat: #efeae2;
   --bg-input: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #708499;
-  --accent: #25d366;
+  --text-primary: #111b21;
+  --text-secondary: #667781;
+  --accent: #008069;
   --bubble-me: #dcf8c6;
-  --bubble-me-text: #000000;
+  --bubble-me-text: #111b21;
   --bubble-other: #ffffff;
-  --bubble-other-text: #000000;
-  --border: #e4e4e7;
-  --sidebar-hover: #f4f4f5;
+  --bubble-other-text: #111b21;
+  --border: #e9edef;
+  --sidebar-hover: #f5f6f6;
+  --date-bg: #d1d7db;
+  --date-text: #111b21;
 }
 
 body {
@@ -125,4 +133,31 @@ body {
 
 .markdown-content p {
   margin-bottom: 0.5rem;
+}
+
+/* WhatsApp Specific Bubble Polish */
+[data-theme='whatsapp'] .message-bubble {
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+
+[data-theme='whatsapp'] .message-bubble-me::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--bubble-me);
+  clip-path: polygon(0 0, 0 100%, 100% 0);
+}
+
+[data-theme='whatsapp'] .message-bubble-other::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -8px;
+  width: 12px;
+  height: 12px;
+  background-color: var(--bubble-other);
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
 }

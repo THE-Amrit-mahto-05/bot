@@ -79,7 +79,7 @@ export function Sidebar() {
 
 
   return (
-    <div className="w-[380px] h-full flex flex-col border-r shadow-sm transition-colors duration-200 themed-bg themed-border">
+    <div className="w-full h-full flex flex-col border-r transition-colors duration-200 themed-bg themed-border">
       <div className="p-4 flex flex-col gap-4 border-b transition-colors duration-200 themed-border">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold tracking-tight transition-colors themed-text">Tars Chat</h1>
@@ -150,13 +150,13 @@ export function Sidebar() {
           </div>
         ) : search.trim() !== "" ? (
           <div className="py-1">
-            {conversations?.some(c =>
+            {conversations && conversations.some(c =>
               (c.isGroup && c.name?.toLowerCase().includes(search.toLowerCase())) ||
               (!c.isGroup && c.otherUser?.name.toLowerCase().includes(search.toLowerCase()))
             ) && (
                 <>
                   <p className="px-4 py-2 text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>Chats</p>
-                  {conversations.filter(c =>
+                  {conversations && conversations.filter(c =>
                     (c.isGroup && c.name?.toLowerCase().includes(search.toLowerCase())) ||
                     (!c.isGroup && c.otherUser?.name.toLowerCase().includes(search.toLowerCase()))
                   ).map(conv => (
@@ -186,15 +186,15 @@ export function Sidebar() {
                   </div>
                 ))}
               </div>
-            ) : conversations.length === 0 ? (
-              <div className="p-8 text-center text-[#708499] flex flex-col items-center gap-3">
-                <div className="bg-[#f4f4f5] p-4 rounded-full"><Users className="h-8 w-8 opacity-20" /></div>
-                <p className="text-sm">No conversations yet. Search for someone to start chatting!</p>
-              </div>
-            ) : (
+            ) : (conversations && conversations.length > 0) ? (
               conversations.map((conv) => (
                 <SidebarChatItem key={conv._id} conversation={conv} onClick={() => handleChatClick(conv._id)} />
               ))
+            ) : (
+              <div className="p-8 text-center text-[#708499] flex flex-col items-center gap-3">
+                <div className="bg-black/5 p-4 rounded-full"><Users className="h-8 w-8 opacity-20" /></div>
+                <p className="text-sm">No conversations yet. Search for someone to start chatting!</p>
+              </div>
             )}
           </div>
         )}
@@ -256,7 +256,7 @@ export function Sidebar() {
         </div>
       )}
 
-      <div className="p-3 border-t flex items-center justify-between transition-colors duration-200 themed-bg themed-border">
+      <div className="p-3 border-t flex items-center justify-between transition-colors duration-200 themed-border" style={{ backgroundColor: 'var(--bg-sidebar)' }}>
         <div className="flex items-center gap-3">
           <UserButton />
           <button
