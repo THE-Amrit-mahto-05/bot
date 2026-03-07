@@ -52,6 +52,7 @@ export const createGroup = mutation({
       .unique();
 
     if (!me) throw new Error("User not found");
+    if (!args.name.trim()) throw new Error("Group name is required");
 
     let iconUrl = args.icon;
     if (args.storageId) {
@@ -284,6 +285,9 @@ export const updateGroupDetails = mutation({
       .unique();
 
     if (!me) throw new Error("User not found");
+    if (args.name !== undefined && !args.name.trim()) {
+      throw new Error("Group name is required");
+    }
 
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation || !conversation.isGroup) {

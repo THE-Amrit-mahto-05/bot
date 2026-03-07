@@ -55,8 +55,8 @@ export function Sidebar() {
   };
 
   const handleCreateGroup = async () => {
-    if (selectedUsers.length === 0) return;
-    const finalName = groupName.trim() || "New Group";
+    if (selectedUsers.length === 0 || !groupName.trim()) return;
+    const finalName = groupName.trim();
     const conversationId = await createGroup({
       userIds: selectedUsers as any,
       name: finalName,
@@ -98,26 +98,13 @@ export function Sidebar() {
         {isSelectionMode && (
           <div className="animate-in slide-in-from-top-2 duration-200 flex flex-col gap-2">
             <div className="flex items-center gap-3 mb-1">
-              <div className="flex flex-col gap-2 flex-1">
-                <div className="flex items-center gap-2 overflow-x-auto pb-1 custom-scrollbar">
-                  {PRESET_ICONS.map((icon) => (
-                    <button
-                      key={icon}
-                      onClick={() => {
-                        setGroupIcon(icon);
-                        setStorageId(null);
-                      }}
-                      className={`h-10 w-10 rounded-full shrink-0 border-2 transition-all overflow-hidden ${groupIcon === icon ? 'border-[#3390ec] scale-110 shadow-md' : 'border-transparent hover:border-gray-200'}`}
-                    >
-                      <img src={icon} className="h-full w-full object-cover" alt="Preset Icon" />
-                    </button>
-                  ))}
-                </div>
+              <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0 border border-gray-200">
+                <img src={groupIcon} className="h-full w-full object-cover rounded-full" alt="Group Icon" />
               </div>
               <input
                 value={groupName}
                 onChange={(e) => setGroupName(e.target.value)}
-                placeholder="Group Name (optional)..."
+                placeholder="Group Name (required)..."
                 className="flex-1 bg-[#f4f4f5] border-none rounded-lg py-2 px-4 text-sm text-black focus:ring-2 focus:ring-[#3390ec]/50 outline-none transition-all font-medium"
               />
             </div>
@@ -214,7 +201,8 @@ export function Sidebar() {
           </p>
           <button
             onClick={handleCreateGroup}
-            className="w-full bg-[#3390ec] hover:bg-[#2c84d8] text-white py-2.5 rounded-xl font-semibold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+            disabled={!groupName.trim()}
+            className="w-full bg-[#3390ec] hover:bg-[#2c84d8] disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl font-semibold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             Create Group
           </button>
