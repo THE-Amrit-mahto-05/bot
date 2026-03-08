@@ -37,6 +37,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
   const containerRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const me = useQuery(api.users.getMe);
   const details = useQuery(api.conversations.getChatDetails, { conversationId });
@@ -66,7 +67,20 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
   useEffect(() => {
     setShowGroupInfo(false);
+    setShowDeleteMenu(false);
   }, [conversationId]);
+
+  // Close the "Clear Chat" dropdown when clicking anywhere outside it
+  useEffect(() => {
+    if (!showDeleteMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowDeleteMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showDeleteMenu]);
 
   useEffect(() => {
     if (!input.trim()) {
@@ -348,30 +362,23 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
       </div>
 
       {showDeleteMenu && typeof window !== "undefined" && ReactDOM.createPortal(
-        <>
-          {/* Click outside overlay */}
-          <div
-            style={{ position: 'fixed', inset: 0, zIndex: 9998 }}
-            onClick={() => setShowDeleteMenu(false)}
-          />
-          {/* The menu itself - positioned near top-right of screen */}
-          <div
-            style={{ position: 'fixed', top: '68px', right: '24px', zIndex: 9999, minWidth: '192px' }}
-            className="border shadow-xl rounded-xl py-1.5 themed-bg themed-border"
+        <div
+          ref={menuRef}
+          style={{ position: 'fixed', top: '68px', right: '24px', zIndex: 9999, minWidth: '192px' }}
+          className="border shadow-xl rounded-xl py-1.5 themed-bg themed-border"
+        >
+          <button
+            onClick={() => {
+              setShowDeleteMenu(false);
+              setShowConfirmClear(true);
+            }}
+            disabled={isDeleting}
+            className="w-full px-4 py-2.5 text-left text-[14px] text-[#ef4444] hover:bg-[#ef4444]/10 flex items-center gap-3 transition-colors"
           >
-            <button
-              onClick={() => {
-                setShowDeleteMenu(false);
-                setShowConfirmClear(true);
-              }}
-              disabled={isDeleting}
-              className="w-full px-4 py-2.5 text-left text-[14px] text-[#ef4444] hover:bg-[#ef4444]/10 flex items-center gap-3 transition-colors"
-            >
-              <Trash2 className="h-4 w-4" />
-              {isDeleting ? "Clearing..." : "Clear Chat"}
-            </button>
-          </div>
-        </>,
+            <Trash2 className="h-4 w-4" />
+            {isDeleting ? "Clearing..." : "Clear Chat"}
+          </button>
+        </div>,
         document.body
       )}
 
