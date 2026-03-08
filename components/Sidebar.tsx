@@ -21,6 +21,21 @@ const PRESET_ICONS = [
   "https://api.dicebear.com/7.x/shapes/svg?seed=6",
 ];
 
+const cleanMarkdown = (text: string) => {
+  if (!text) return "";
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "$1")      // **bold**
+    .replace(/\*(.*?)\*/g, "$1")          // *italic*
+    .replace(/__(.*?)__/g, "$1")          // __bold__
+    .replace(/_(.*?)_/g, "$1")            // _italic_
+    .replace(/`{1,3}[^`]*`{1,3}/g, "")   // `code` or ```block```
+    .replace(/^#{1,6}\s+/gm, "")         // # headers
+    .replace(/^[-*+]\s+/gm, "")          // - list items
+    .replace(/^\d+\.\s+/gm, "")          // 1. numbered lists
+    .replace(/\n+/g, " ")                // collapse newlines
+    .trim();
+};
+
 export function Sidebar() {
   const router = useRouter();
   const [search, setSearch] = useState("");
@@ -334,7 +349,9 @@ function SidebarChatItem({ conversation, onClick }: { conversation: any; onClick
         </div>
         <p className="text-[13.5px] truncate transition-colors themed-text-secondary">
           {conversation.lastMessage
-            ? (conversation.lastMessage.isSystem ? `📢 ${conversation.lastMessage.body}` : conversation.lastMessage.body)
+            ? (conversation.lastMessage.isSystem
+              ? `📢 ${conversation.lastMessage.body}`
+              : cleanMarkdown(conversation.lastMessage.body))
             : isGroup ? "Group created" : "Click to chat"}
         </p>
       </div>
