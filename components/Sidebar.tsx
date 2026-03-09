@@ -261,7 +261,7 @@ export function Sidebar() {
       )}
 
       {showSettings && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setShowSettings(false)}>
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-transparent animate-in fade-in duration-200" onClick={() => setShowSettings(false)}>
           <div className="rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in duration-200 themed-bg" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-lg font-bold themed-text">Settings</h3>
@@ -277,7 +277,6 @@ export function Sidebar() {
                   {[
                     { id: 'light', name: 'Light', icon: <Sun className="h-4 w-4" />, color: '#ffffff' },
                     { id: 'dark', name: 'Dark', icon: <Moon className="h-4 w-4" />, color: '#17212b' },
-                    { id: 'telegram', name: 'Telegram', icon: <Palette className="h-4 w-4" />, color: '#54759e' },
                     { id: 'whatsapp', name: 'WhatsApp', icon: <Palette className="h-4 w-4" />, color: '#25d366' },
                   ].map((t) => (
                     <button

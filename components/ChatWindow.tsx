@@ -311,12 +311,11 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
   const otherUser = details.otherUser;
   const isWhatsapp = theme === 'whatsapp';
-  const isTelegram = theme === 'telegram';
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden transition-colors duration-200 themed-chat-bg relative">
       <div
-        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-500
+        className={`absolute inset-0 pointer-events-none z-0 transition-opacity duration-700
           ${isWhatsapp
             ? "bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')] opacity-[0.08]"
             : "bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.05]"
@@ -717,7 +716,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
       {showConfirmClear && typeof window !== "undefined" && ReactDOM.createPortal(
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          style={{ position: 'fixed', inset: 0, zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', backgroundColor: 'rgba(0,0,0,0.5)' }}
           onClick={() => setShowConfirmClear(false)}
         >
           <div

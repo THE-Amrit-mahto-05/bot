@@ -34,23 +34,6 @@
   --date-text: #ffffff;
 }
 
-[data-theme='telegram'] {
-  --bg-sidebar: #f5f6f7;
-  --bg-chat: #54759e;
-  --bg-input: #ffffff;
-  --text-primary: #000000;
-  --text-secondary: #708499;
-  --accent: #3390ec;
-  --bubble-me: #effdde;
-  --bubble-me-text: #000000;
-  --bubble-other: #ffffff;
-  --bubble-other-text: #000000;
-  --border: #dfdfdf;
-  --sidebar-hover: #f1f1f1;
-  --date-bg: rgba(74, 106, 143, 0.8);
-  --date-text: #ffffff;
-}
-
 [data-theme='whatsapp'] {
   --bg-sidebar: #ffffff;
   --bg-chat: #efeae2;
@@ -72,23 +55,27 @@ body {
   background-color: var(--bg-chat);
   color: var(--text-primary);
   font-family: Arial, Helvetica, sans-serif;
-  transition: background-color 0.2s, color 0.2s;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .themed-bg {
   background-color: var(--bg-sidebar);
+  transition: background-color 0.3s ease !important;
 }
 
 .themed-chat-bg {
   background-color: var(--bg-chat);
+  transition: background-color 0.3s ease !important;
 }
 
 .themed-text {
   color: var(--text-primary);
+  transition: color 0.3s ease !important;
 }
 
 .themed-text-secondary {
   color: var(--text-secondary);
+  transition: color 0.3s ease !important;
 }
 
 .sidebar-item-hover:hover {
@@ -97,6 +84,7 @@ body {
 
 .themed-border {
   border-color: var(--border);
+  transition: border-color 0.3s ease !important;
 }
 
 [data-theme='dark'] ::-webkit-scrollbar-thumb {

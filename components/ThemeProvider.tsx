@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark" | "telegram" | "whatsapp";
+type Theme = "light" | "dark" | "whatsapp";
 
 interface ThemeContextType {
     theme: Theme;
