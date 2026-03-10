@@ -104,35 +104,43 @@ export const getChatDetails = query({
       if (url) groupIcon = url;
     }
 
-    if (conversation.isGroup) {
-      return {
-        conversation,
-        otherUser: null,
-        groupDetails: {
-          name: conversation.name,
-          description: conversation.description,
-          icon: groupIcon,
-          participantCount: conversation.participants?.length ?? 0,
-          adminId: conversation.adminId,
+    let otherUser = null;
+    if (!conversation.isGroup) {
+      const otherUserId =
+        conversation.participantOne === me._id
+          ? conversation.participantTwo
+          : conversation.participantOne;
+
+      if (otherUserId) {
+        const u = await ctx.db.get(otherUserId);
+        if (u) {
+          otherUser = {
+            ...u,
+            isOnline: u.isOnline && (Date.now() - (u.lastSeen ?? 0) < 25000),
+          };
         }
-      };
+      }
     }
 
-    const otherUserId =
-      conversation.participantOne === me._id
-        ? conversation.participantTwo
-        : conversation.participantOne;
-
-    if (!otherUserId) throw new Error("No other participant found");
-    const otherUser = await ctx.db.get(otherUserId);
-    if (!otherUser) throw new Error("Other user not found");
+    let typingUserImage = null;
+    if (conversation.typingUser) {
+      const tUser = await ctx.db.get(conversation.typingUser);
+      typingUserImage = tUser?.image || null;
+    }
 
     return {
-      conversation,
-      otherUser: {
-        ...otherUser,
-        isOnline: otherUser.isOnline && (Date.now() - (otherUser.lastSeen ?? 0) < 25000),
+      conversation: {
+        ...conversation,
+        typingUserImage
       },
+      otherUser,
+      groupDetails: conversation.isGroup ? {
+        name: conversation.name,
+        description: conversation.description,
+        icon: groupIcon,
+        participantCount: conversation.participants?.length ?? 0,
+        adminId: conversation.adminId,
+      } : null
     };
   },
 });
@@ -174,6 +182,11 @@ export const setTyping = mutation({
 
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) return;
+
+    // Safety check: Only clear if the caller IS the currently stored typing user
+    if (!args.isTyping && conversation.typingUser !== typingUserId) {
+      return;
+    }
 
     await ctx.db.patch(args.conversationId, {
       typingUser: args.isTyping ? typingUserId : undefined,
@@ -249,6 +262,12 @@ export const list = query({
           .order("desc")
           .first();
 
+        let typingUserName = null;
+        if (conv.typingUser && conv.typingUser !== me._id) {
+          const tUser = await ctx.db.get(conv.typingUser);
+          typingUserName = tUser?.name || null;
+        }
+
         return {
           ...conv,
           icon: groupIcon,
@@ -261,6 +280,7 @@ export const list = query({
             _creationTime: lastMessage._creationTime,
             isSystem: lastMessage.isSystem,
           } : null,
+          typingUserName,
         };
       })
     );

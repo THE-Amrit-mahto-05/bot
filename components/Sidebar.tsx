@@ -375,13 +375,19 @@ function SidebarChatItem({ conversation, onClick }: { conversation: any; onClick
             </span>
           )}
         </div>
-        <p className="text-[13.5px] truncate transition-colors themed-text-secondary">
-          {conversation.lastMessage
-            ? (conversation.lastMessage.isSystem
-              ? `📢 ${conversation.lastMessage.body}`
-              : cleanMarkdown(conversation.lastMessage.body))
-            : isGroup ? "Group created" : "Click to chat"}
-        </p>
+        {conversation.typingUserName ? (
+          <p className="text-[13.5px] truncate transition-colors font-medium animate-pulse" style={{ color: 'var(--accent)' }}>
+            {isGroup ? `${conversation.typingUserName} is typing...` : 'typing...'}
+          </p>
+        ) : (
+          <p className="text-[13.5px] truncate transition-colors themed-text-secondary">
+            {conversation.lastMessage
+              ? (conversation.lastMessage.isSystem
+                ? `📢 ${conversation.lastMessage.body}`
+                : cleanMarkdown(conversation.lastMessage.body))
+              : isGroup ? "Group created" : "Click to chat"}
+          </p>
+        )}
       </div>
     </button>
   );

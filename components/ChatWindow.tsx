@@ -38,6 +38,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
   const abortControllerRef = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const isTypingLocal = useRef(false);
 
   const me = useQuery(api.users.getMe);
   const details = useQuery(api.conversations.getChatDetails, { conversationId });
@@ -84,14 +85,19 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
   useEffect(() => {
     if (!input.trim()) {
-      setTyping({ conversationId, isTyping: false });
+      if (isTypingLocal.current) {
+        setTyping({ conversationId, isTyping: false });
+        isTypingLocal.current = false;
+      }
       return;
     }
 
     setTyping({ conversationId, isTyping: true });
+    isTypingLocal.current = true;
 
     const timeout = setTimeout(() => {
       setTyping({ conversationId, isTyping: false });
+      isTypingLocal.current = false;
     }, 2000);
 
     return () => clearTimeout(timeout);
@@ -170,7 +176,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
         const contextMessages = messages
           ?.filter(m => !m.isSystem && !m.isDeleted)
-          .slice(-6)
+          .slice(-3)
           .map(m => ({
             role: m.authorId === aiId ? "assistant" : "user",
             content: details?.conversation?.isGroup && m.authorId !== aiId ? `[${m.authorName}]: ${m.body}` : m.body
@@ -570,7 +576,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
             <div className="flex w-full justify-start mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex gap-3 items-end max-w-[85%] sm:max-w-[70%]">
                 <div className="relative shrink-0">
-                  <img src={otherUser?.image ?? "https://cdn-icons-png.flaticon.com/512/166/166258.png"} className="h-8 w-8 rounded-full border themed-border" alt="AI Agent" />
+                  <img src={aiMember?.image ?? "https://cdn-icons-png.flaticon.com/512/166/166258.png"} className="h-8 w-8 rounded-full border themed-border" alt="AI Agent" />
                 </div>
                 <div className="rounded-2xl rounded-tl-sm border themed-border px-4 py-2.5 shadow-sm themed-bg message-bubble-other"
                   style={{
@@ -594,6 +600,34 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
                       <span className="text-[13px] font-medium ml-2 themed-text-secondary">Tars is thinking...</span>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {details?.conversation?.typingUser && details.conversation.typingUser !== me?._id && !isAiGenerating && (
+            <div className="flex w-full justify-start mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex gap-3 items-end max-w-[85%] sm:max-w-[70%]">
+                <div className="relative shrink-0">
+                  <img
+                    src={details.conversation.typingUserImage || "https://cdn-icons-png.flaticon.com/512/166/166258.png"}
+                    className="h-8 w-8 rounded-full border themed-border"
+                    alt="Typing User"
+                  />
+                </div>
+                <div className="rounded-2xl rounded-tl-sm border themed-border px-4 py-2.5 shadow-sm themed-bg message-bubble-other"
+                  style={{
+                    backgroundColor: 'var(--bubble-other)',
+                    color: 'var(--bubble-other-text)',
+                  }}
+                >
+                  <div className="flex items-center gap-2 h-6">
+                    <div className="flex gap-1.5 items-center">
+                      <div className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.3s] opacity-60" style={{ backgroundColor: 'var(--bubble-other-text)' }} />
+                      <div className="w-1.5 h-1.5 rounded-full animate-bounce [animation-delay:-0.15s] opacity-60" style={{ backgroundColor: 'var(--bubble-other-text)' }} />
+                      <div className="w-1.5 h-1.5 rounded-full animate-bounce opacity-60" style={{ backgroundColor: 'var(--bubble-other-text)' }} />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
