@@ -159,6 +159,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
     if (shouldTriggerAI) {
       let aiText = "";
+      let aiId: Id<"users"> | null = null;
       try {
         abortControllerRef.current = new AbortController();
         const signal = abortControllerRef.current.signal;
@@ -167,12 +168,12 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
         setStreamingAIText("");
 
         if (isChattingWithAI && details.otherUser) {
-          setTyping({ conversationId, isTyping: true, userId: details.otherUser._id });
+          // AI typing is now handled purely locally via isAiGenerating
         } else if (aiMember) {
-          setTyping({ conversationId, isTyping: true, userId: aiMember._id });
+          // AI typing is now handled purely locally via isAiGenerating
         }
 
-        const aiId = aiMember?._id || (isChattingWithAI && details?.otherUser ? details.otherUser._id : null);
+        aiId = aiMember?._id || (isChattingWithAI && details?.otherUser ? details.otherUser._id : null);
 
         const contextMessages = messages
           ?.filter(m => !m.isSystem && !m.isDeleted)
@@ -225,7 +226,6 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
         setIsAiGenerating(false);
         setStreamingAIText("");
-        await setTyping({ conversationId, isTyping: false });
 
         abortControllerRef.current = null;
         setTimeout(() => inputRef.current?.focus(), 0);
@@ -236,7 +236,6 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
         if (aiText.trim()) {
           await sendAI({ body: aiText, conversationId });
         }
-        await setTyping({ conversationId, isTyping: false });
         setIsAiGenerating(false);
         setStreamingAIText("");
         abortControllerRef.current = null;

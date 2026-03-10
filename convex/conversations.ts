@@ -123,14 +123,23 @@ export const getChatDetails = query({
     }
 
     let typingUserImage = null;
+    let finalTypingUser = conversation.typingUser;
+
     if (conversation.typingUser) {
       const tUser = await ctx.db.get(conversation.typingUser);
-      typingUserImage = tUser?.image || null;
+      if (tUser && !tUser.isAI && tUser.clerkId !== "ai-bot" && tUser.name !== "Tars AI") {
+        typingUserImage = tUser.image || null;
+      } else {
+        // Force clear if it's AI or missing
+        finalTypingUser = undefined;
+        typingUserImage = null;
+      }
     }
 
     return {
       conversation: {
         ...conversation,
+        typingUser: finalTypingUser,
         typingUserImage
       },
       otherUser,
@@ -183,9 +192,22 @@ export const setTyping = mutation({
     const conversation = await ctx.db.get(args.conversationId);
     if (!conversation) return;
 
+    // PROACTIVE BLOCK: Don't allow AI to ever be marked as typing
+    if (args.isTyping && typingUserId) {
+      const tUser = await ctx.db.get(typingUserId);
+      if (tUser?.isAI || tUser?.clerkId === "ai-bot" || tUser?.name === "Tars AI") {
+        return;
+      }
+    }
+
     // Safety check: Only clear if the caller IS the currently stored typing user
-    if (!args.isTyping && conversation.typingUser !== typingUserId) {
-      return;
+    // Exception: Allow clearing if the currently stored user is the AI bot
+    if (!args.isTyping && conversation.typingUser && conversation.typingUser !== typingUserId) {
+      const currentTypingUser = await ctx.db.get(conversation.typingUser);
+      // If we can't find the user, or it's an AI bot, allow the clear
+      if (currentTypingUser && !currentTypingUser.isAI && currentTypingUser.clerkId !== "ai-bot" && currentTypingUser.name !== "Tars AI") {
+        return;
+      }
     }
 
     await ctx.db.patch(args.conversationId, {
@@ -263,13 +285,21 @@ export const list = query({
           .first();
 
         let typingUserName = null;
+        let finalTypingUser = conv.typingUser;
         if (conv.typingUser && conv.typingUser !== me._id) {
           const tUser = await ctx.db.get(conv.typingUser);
-          typingUserName = tUser?.name || null;
+          if (tUser && !tUser.isAI && tUser.clerkId !== "ai-bot" && tUser.name !== "Tars AI") {
+            typingUserName = tUser.name || null;
+          } else {
+            // Filter it out if it's AI or missing
+            finalTypingUser = undefined;
+            typingUserName = null;
+          }
         }
 
         return {
           ...conv,
+          typingUser: finalTypingUser,
           icon: groupIcon,
           otherUser: otherUser ? {
             ...otherUser,
