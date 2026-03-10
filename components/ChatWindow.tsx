@@ -166,10 +166,15 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           setTyping({ conversationId, isTyping: true, userId: aiMember._id });
         }
 
-        const contextMessages = messages?.slice(-3).map(m => ({
-          role: m.authorId === me?._id ? "user" : "assistant",
-          content: m.body
-        })) || [];
+        const aiId = aiMember?._id || (isChattingWithAI && details?.otherUser ? details.otherUser._id : null);
+
+        const contextMessages = messages
+          ?.filter(m => !m.isSystem && !m.isDeleted)
+          .slice(-6)
+          .map(m => ({
+            role: m.authorId === aiId ? "assistant" : "user",
+            content: details?.conversation?.isGroup && m.authorId !== aiId ? `[${m.authorName}]: ${m.body}` : m.body
+          })) || [];
 
         const response = await fetch("/api/chat", {
           method: "POST",
