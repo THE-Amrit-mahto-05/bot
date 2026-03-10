@@ -4,23 +4,18 @@ import React, { useState, useRef, useEffect } from "react";
 import ReactDOM from "react-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { Send, Loader2, Sparkles, Trash2, ArrowDown, SmilePlus, Square, Copy, Check, MessageSquare, AtSign, X, Edit2, CheckCircle2, Users, ImagePlus, MoreVertical, LogOut } from "lucide-react";
+import { Id, Doc } from "@/convex/_generated/dataModel";
+import { Send, Loader2, Sparkles, Trash2, ArrowDown, SmilePlus, Square, Copy, Check, MessageSquare, AtSign, X, Edit2, CheckCircle2, Users, MoreVertical, LogOut } from "lucide-react";
 import { format, isToday, isYesterday, isThisYear } from "date-fns";
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useRouter } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
+import Image from "next/image";
+import { PRESET_ICONS } from "./types";
 
-const PRESET_ICONS = [
-  "https://api.dicebear.com/7.x/shapes/svg?seed=1",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=2",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=3",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=4",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=5",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=6",
-];
+
 
 export function ChatWindow({ conversationId }: { conversationId: Id<"conversations"> }) {
   const router = useRouter();
@@ -145,7 +140,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
   }, [conversationId]);
 
 
-  const handleSend = async (e: React.FormEvent) => {
+  const handleSend = async (e: React.FormEvent | React.KeyboardEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -166,12 +161,6 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
         setIsAiGenerating(true);
         setStreamingAIText("");
-
-        if (isChattingWithAI && details.otherUser) {
-          // AI typing is now handled purely locally via isAiGenerating
-        } else if (aiMember) {
-          // AI typing is now handled purely locally via isAiGenerating
-        }
 
         aiId = aiMember?._id || (isChattingWithAI && details?.otherUser ? details.otherUser._id : null);
 
@@ -229,8 +218,8 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
         abortControllerRef.current = null;
         setTimeout(() => inputRef.current?.focus(), 0);
-      } catch (error: any) {
-        if (error.name !== "AbortError") {
+      } catch (error) {
+        if (error instanceof Error && error.name !== "AbortError") {
           console.error("AI Error:", error);
         }
         if (aiText.trim()) {
@@ -322,7 +311,6 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
     );
   }
 
-  const otherUser = details.otherUser;
   const isWhatsapp = theme === 'whatsapp';
 
   return (
@@ -339,11 +327,15 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
       {/* Header */}
       <div className="h-[60px] px-6 flex items-center justify-between border-b shadow-sm transition-colors duration-200 themed-bg themed-border" style={{ position: 'relative', zIndex: 50 }}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="relative cursor-pointer hover:opacity-90 transition-opacity shrink-0" onClick={() => details?.conversation.isGroup && setShowGroupInfo(true)}>
-            <img
+          <div className="relative cursor-pointer hover:opacity-90 transition-opacity shrink-0 rounded-full overflow-hidden"
+            onClick={() => details?.conversation.isGroup && setShowGroupInfo(true)}>
+            <Image
               src={details?.conversation.isGroup
                 ? (details?.conversation.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png")
-                : details?.otherUser?.image}
+                : details?.otherUser?.image ?? ""}
+              width={40}
+              height={40}
+              unoptimized
               className="h-10 w-10 rounded-full object-cover border border-black/5"
               alt="Avatar"
             />
@@ -351,7 +343,8 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
               <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 themed-border" style={{ backgroundColor: 'var(--accent)' }} />
             )}
           </div>
-          <div className="flex flex-col text-left min-w-0">
+          <div className="flex flex-col text-left min-w-0 cursor-pointer"
+            onClick={() => details?.conversation.isGroup && setShowGroupInfo(true)}>
             <h3 className="text-[15px] font-bold truncate leading-tight transition-colors themed-text">
               {details?.conversation.isGroup ? details?.conversation.name : details?.otherUser?.name}
             </h3>
@@ -409,7 +402,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
               <p className="text-sm themed-text-secondary">Send a message to start the conversation!</p>
             </div>
           )}
-          {messages?.map((msg: any, index: number) => {
+          {messages?.map((msg, index: number) => {
             const prevMsg = messages[index - 1];
             const isSameAuthorAsPrev = prevMsg?.authorId === msg.authorId;
             const isSystem = msg.isSystem;
@@ -459,10 +452,6 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
                 <div
                   className={`flex group w-full ${isMe ? "justify-end" : "justify-start"} ${!isSameAuthorAsPrev || showDateDivider ? "mt-4" : "mt-0.5"}`}
                 >
-                  {!isMe && (
-                    <div className="w-8 shrink-0 mr-2 flex justify-end items-end transition-opacity" />
-                  )}
-
                   <div className={`relative max-w-[85%] sm:max-w-[70%] px-4 py-2.5 shadow-sm group transition-all duration-200 message-bubble
                     ${isMe
                       ? "rounded-2xl rounded-tr-sm message-bubble-me"
@@ -487,12 +476,12 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
                     {!isDeleted && msg.reactions && msg.reactions.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {Object.entries(
-                          msg.reactions.reduce((acc: any, r: any) => {
+                          msg.reactions.reduce((acc: Record<string, number>, r) => {
                             acc[r.emoji] = (acc[r.emoji] || 0) + 1;
                             return acc;
                           }, {})
-                        ).map(([emoji, count]: [string, any]) => {
-                          const hasReacted = msg.reactions?.some((r: any) => r.isMe && r.emoji === emoji);
+                        ).map(([emoji, count]: [string, number]) => {
+                          const hasReacted = msg.reactions?.some((r) => r.user === me?._id && r.emoji === emoji);
                           return (
                             <button
                               key={emoji}
@@ -574,8 +563,8 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           {isAiGenerating && messages?.[messages.length - 1]?.body?.trim() !== streamingAIText.trim() && (
             <div className="flex w-full justify-start mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex gap-3 items-end max-w-[85%] sm:max-w-[70%]">
-                <div className="relative shrink-0">
-                  <img src={aiMember?.image ?? "https://cdn-icons-png.flaticon.com/512/166/166258.png"} className="h-8 w-8 rounded-full border themed-border" alt="AI Agent" />
+                <div className="relative shrink-0 rounded-full overflow-hidden">
+                  <Image src={aiMember?.image ?? "https://cdn-icons-png.flaticon.com/512/166/166258.png"} width={32} height={32} unoptimized className="h-8 w-8 rounded-full border themed-border" alt="AI Agent" />
                 </div>
                 <div className="rounded-2xl rounded-tl-sm border themed-border px-4 py-2.5 shadow-sm themed-bg message-bubble-other"
                   style={{
@@ -607,9 +596,12 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           {details?.conversation?.typingUser && details.conversation.typingUser !== me?._id && !isAiGenerating && (
             <div className="flex w-full justify-start mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex gap-3 items-end max-w-[85%] sm:max-w-[70%]">
-                <div className="relative shrink-0">
-                  <img
+                <div className="relative shrink-0 rounded-full overflow-hidden">
+                  <Image
                     src={details.conversation.typingUserImage || "https://cdn-icons-png.flaticon.com/512/166/166258.png"}
+                    width={32}
+                    height={32}
+                    unoptimized
                     className="h-8 w-8 rounded-full border themed-border"
                     alt="Typing User"
                   />
@@ -634,22 +626,23 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
           <div ref={scrollRef} />
         </div>
+
+        {showScrollButton && (
+          <button
+            onClick={() => {
+              setShowScrollButton(false);
+              scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="absolute bottom-28 right-6 md:right-10 z-[100] flex items-center gap-2 text-white px-4 py-2 rounded-full shadow-2xl animate-in zoom-in slide-in-from-bottom-5 duration-300 font-medium text-sm group"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            <ArrowDown className="h-4 w-4 animate-bounce" />
+            <span>New messages</span>
+          </button>
+        )}
       </div>
 
-      {showScrollButton && (
-        <button
-          onClick={() => {
-            setShowScrollButton(false);
-            scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-          }}
-          className="absolute bottom-28 right-6 md:right-10 z-[100] flex items-center gap-2 text-white px-4 py-2 rounded-full shadow-2xl animate-in zoom-in slide-in-from-bottom-5 duration-300 font-medium text-sm group"
-          style={{ backgroundColor: 'var(--accent)' }}
-        >
-          <ArrowDown className="h-4 w-4 animate-bounce" />
-          <span>New messages</span>
-        </button>
-      )}
-
+      {/* Input Area */}
       <div className="px-4 pb-6 z-20">
         <div className="max-w-[1000px] mx-auto flex items-end gap-3">
           <form onSubmit={handleSend} className="flex-1 relative flex items-end gap-2">
@@ -662,7 +655,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    handleSend(e as any);
+                    handleSend(e);
                   }
                 }}
                 disabled={isAiGenerating}
@@ -808,7 +801,17 @@ function GroupInfo({
   onLeave,
 }: {
   conversationId: Id<"conversations">;
-  details: any;
+  details: {
+    conversation: Doc<"conversations">;
+    otherUser: (Doc<"users"> & { isOnline: boolean }) | null;
+    groupDetails: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      participantCount: number;
+      adminId?: Id<"users">;
+    } | null;
+  };
   onClose: () => void;
   onMention: (name: string) => void;
   onMessage: (userId: Id<"users">) => void;
@@ -907,7 +910,7 @@ function GroupInfo({
                         className={`h-12 w-12 rounded-full border-2 transition-all overflow-hidden ${editIcon === icon ? 'scale-110 shadow-lg' : 'border-transparent hover:border-black/20 hover:scale-105'}`}
                         style={{ borderColor: editIcon === icon ? 'var(--accent)' : 'transparent' }}
                       >
-                        <img src={icon} className="h-full w-full object-cover" alt="Preset Icon" />
+                        <Image src={icon} width={48} height={48} unoptimized className="h-full w-full object-cover" alt="Preset Icon" />
                       </button>
                     ))}
                   </div>
@@ -918,7 +921,7 @@ function GroupInfo({
                   onChange={(e) => setEditName(e.target.value)}
                   placeholder="Group Name"
                   className="w-full p-2 border rounded-lg font-bold text-center text-lg focus:ring-1 themed-bg themed-text themed-border"
-                  style={{ '--tw-ring-color': 'var(--accent)' } as any}
+                  style={{ '--tw-ring-color': 'var(--accent)' } as React.CSSProperties}
                 />
                 <textarea
                   value={editDesc}
@@ -926,7 +929,7 @@ function GroupInfo({
                   placeholder="Description..."
                   rows={3}
                   className="w-full p-2 border rounded-lg text-sm focus:ring-1 resize-none themed-bg themed-text themed-border"
-                  style={{ '--tw-ring-color': 'var(--accent)' } as any}
+                  style={{ '--tw-ring-color': 'var(--accent)' } as React.CSSProperties}
                 />
                 <div className="flex gap-2">
                   <button
@@ -948,11 +951,15 @@ function GroupInfo({
               </div>
             ) : (
               <>
-                <img
-                  src={groupDetails?.icon ?? "https://cdn-icons-png.flaticon.com/512/166/166258.png"}
-                  className="h-32 w-32 rounded-full object-cover border-4 themed-border shadow-lg mb-4"
-                  alt="Group Icon"
-                />
+                <div className="relative h-32 w-32 rounded-full overflow-hidden border-4 themed-border shadow-lg mb-4">
+                  <Image
+                    src={groupDetails?.icon ?? "https://cdn-icons-png.flaticon.com/512/166/166258.png"}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    alt="Group Icon"
+                  />
+                </div>
                 <h2 className="text-2xl font-bold themed-text mb-1">{groupDetails?.name}</h2>
                 <div className="flex items-center gap-2 mb-2">
                   <p className="text-[13px] uppercase tracking-wider font-bold themed-text-secondary">
@@ -988,24 +995,25 @@ function GroupInfo({
             <h4 className="text-[12px] font-bold uppercase tracking-wider mb-4" style={{ color: 'var(--accent)' }}>
               {groupDetails?.participantCount} Participants
             </h4>
-            <div className="space-y-4">
-              {members?.map((member: any) => (
-                <div key={member._id} className="flex items-center gap-3 group">
-                  <div className="relative">
-                    <img src={member.image} className="h-10 w-10 rounded-full object-cover" alt={member.name} />
+            {members?.map((member) => {
+              if (!member) return null;
+              return (
+                <div key={member._id} className="flex items-center gap-3 group mb-4 last:mb-0">
+                  <div className="relative rounded-full overflow-hidden shrink-0">
+                    <Image src={member.image} width={40} height={40} unoptimized className="h-10 w-10 rounded-full object-cover" alt={member.name} />
                     {member.isOnline && (
                       <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 themed-border" style={{ backgroundColor: 'var(--accent)' }} />
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-1.5 flex-1">
-                      <p className="text-[15px] font-medium truncate max-w-[150px] themed-text">{member.name}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[15px] font-medium truncate themed-text">{member.name}</p>
                       {member.isAI && <Sparkles className="h-3 w-3" style={{ color: 'var(--accent)', fill: 'var(--accent)', opacity: 0.1 }} />}
                       {member._id === details.conversation.adminId && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase shrink-0" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>Admin</span>
                       )}
                     </div>
-                    <p className="text-[12px] themed-text-secondary">
+                    <p className="text-[12px] themed-text-secondary truncate">
                       {member.isAI ? "Tars AI Agent" : member.isOnline ? "Online" : "Last seen recently"}
                     </p>
                   </div>
@@ -1031,46 +1039,48 @@ function GroupInfo({
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-6 bg-black/[0.02] mt-auto">
-            <button
-              onClick={() => setShowConfirmLeave(true)}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 border rounded-xl font-bold text-sm transition-all active:scale-95 shadow-sm themed-bg themed-border text-[#ef4444] hover:bg-[#ef4444]/10"
-            >
-              <LogOut className="h-4 w-4" />
-              Leave Group
-            </button>
+              );
+            })}
           </div>
         </div>
 
-        {showConfirmLeave && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in duration-200 themed-bg">
-              <h3 className="text-lg font-bold themed-text mb-2">Leave Group?</h3>
-              <p className="themed-text-secondary text-sm mb-6">
-                Are you sure you want to leave this group? You won't be able to send or receive messages here anymore.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowConfirmLeave(false)}
-                  className="flex-1 py-2.5 rounded-xl font-medium themed-text-secondary bg-black/5 hover:bg-black/10 transition-colors"
-                >
-                  Go Back
-                </button>
-                <button
-                  onClick={onLeave}
-                  className="flex-1 py-2.5 rounded-xl font-bold bg-[#ef4444] text-white hover:bg-[#dc2626] transition-colors"
-                >
-                  Leave
-                </button>
-              </div>
+        <div className="p-6 bg-black/[0.02] mt-auto">
+          <button
+            onClick={() => setShowConfirmLeave(true)}
+            className="w-full flex items-center justify-center gap-2 py-3 px-4 border rounded-xl font-bold text-sm transition-all active:scale-95 shadow-sm themed-bg themed-border text-[#ef4444] hover:bg-[#ef4444]/10"
+          >
+            <LogOut className="h-4 w-4" />
+            Leave Group
+          </button>
+        </div>
+      </div>
+
+      {showConfirmLeave && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowConfirmLeave(false)}>
+          <div className="rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-in zoom-in duration-200 themed-bg"
+            onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-bold themed-text mb-2">Leave Group?</h3>
+            <p className="themed-text-secondary text-sm mb-6">
+              Are you sure you want to leave this group? You won&apos;t be able to send or receive messages here anymore.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowConfirmLeave(false)}
+                className="flex-1 py-2.5 rounded-xl font-medium themed-text-secondary bg-black/5 hover:bg-black/10 transition-colors"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={onLeave}
+                className="flex-1 py-2.5 rounded-xl font-bold bg-[#ef4444] text-white hover:bg-[#dc2626] transition-colors"
+              >
+                Leave
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

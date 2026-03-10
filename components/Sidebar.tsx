@@ -5,21 +5,17 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 
-import { Search, Sparkles, Users, X, CheckCircle2, ImagePlus, Loader2, MessageSquare, AtSign } from "lucide-react";
+import { Search, Sparkles, Users, X, CheckCircle2, MessageSquare, AtSign } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { UserButton } from "@clerk/nextjs";
 import { format, isToday, isThisYear } from "date-fns";
 import { Settings, Moon, Sun, Palette } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
+import Image from "next/image";
+import { Doc } from "@/convex/_generated/dataModel";
+import { Conversation, PRESET_ICONS } from "./types";
 
-const PRESET_ICONS = [
-  "https://api.dicebear.com/7.x/shapes/svg?seed=1",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=2",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=3",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=4",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=5",
-  "https://api.dicebear.com/7.x/shapes/svg?seed=6",
-];
+
 
 const cleanMarkdown = (text: string) => {
   if (!text) return "";
@@ -53,7 +49,7 @@ export function Sidebar() {
   const [showSettings, setShowSettings] = useState(false);
   const { theme, setTheme } = useTheme();
 
-  const handleUserClick = async (user: any) => {
+  const handleUserClick = async (user: Doc<"users">) => {
     if (isSelectionMode) {
       if (selectedUsers.includes(user._id)) {
         setSelectedUsers(prev => prev.filter(id => id !== user._id));
@@ -67,7 +63,7 @@ export function Sidebar() {
     setSearch("");
   };
 
-  const handleChatClick = (conversationId: string) => {
+  const handleChatClick = (conversationId: Id<"conversations">) => {
     router.push(`/?chat=${conversationId}`);
   };
 
@@ -75,7 +71,7 @@ export function Sidebar() {
     if (selectedUsers.length === 0 || !groupName.trim()) return;
     const finalName = groupName.trim();
     const conversationId = await createGroup({
-      userIds: selectedUsers as any,
+      userIds: selectedUsers as Id<"users">[],
       name: finalName,
       description: groupDescription.trim() || undefined,
       icon: storageId ? undefined : (groupIcon || undefined),
@@ -116,8 +112,8 @@ export function Sidebar() {
         {isSelectionMode && (
           <div className="animate-in slide-in-from-top-2 duration-200 flex flex-col gap-2">
             <div className="flex items-center gap-3 mb-1">
-              <div className="h-10 w-10 rounded-full bg-black/5 flex items-center justify-center shrink-0 border themed-border">
-                <img src={groupIcon} className="h-full w-full object-cover rounded-full" alt="Group Icon" />
+              <div className="h-10 w-10 rounded-full bg-black/5 flex items-center justify-center shrink-0 border themed-border overflow-hidden">
+                <Image src={groupIcon} width={40} height={40} unoptimized className="h-full w-full object-cover rounded-full" alt="Group Icon" />
               </div>
               <input
                 value={groupName}
@@ -281,7 +277,7 @@ export function Sidebar() {
                   ].map((t) => (
                     <button
                       key={t.id}
-                      onClick={() => setTheme(t.id as any)}
+                      onClick={() => setTheme(t.id as "light" | "dark" | "whatsapp")}
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border-2 transition-all ${theme === t.id ? 'bg-black/5' : 'border-black/5 hover:border-black/10'}`}
                       style={{ borderColor: theme === t.id ? 'var(--accent)' : '' }}
                     >
@@ -331,7 +327,7 @@ export function Sidebar() {
   );
 }
 
-function SidebarChatItem({ conversation, onClick }: { conversation: any; onClick: () => void }) {
+function SidebarChatItem({ conversation, onClick }: { conversation: Conversation; onClick: () => void }) {
   const isGroup = conversation.isGroup;
   const imageUrl = isGroup
     ? (conversation.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png")
@@ -353,8 +349,8 @@ function SidebarChatItem({ conversation, onClick }: { conversation: any; onClick
       className="w-full flex items-center gap-3 px-3 py-2.5 transition-colors group relative border-b border-transparent sidebar-item-hover"
     >
       <div className="absolute left-0 top-0 bottom-0 w-[4px] transition-opacity opacity-0 group-hover:opacity-100" style={{ backgroundColor: 'var(--accent)' }} />
-      <div className="relative shrink-0">
-        <img src={imageUrl} className="h-12 w-12 rounded-full object-cover" alt={name} />
+      <div className="relative shrink-0 overflow-hidden rounded-full">
+        <Image src={imageUrl ?? ""} width={48} height={48} unoptimized className="h-12 w-12 rounded-full object-cover" alt={name ?? "alt"} />
         {!isGroup && !conversation.otherUser?.isAI && conversation.otherUser?.isOnline && (
           <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 themed-border" style={{ backgroundColor: 'var(--accent)' }} />
         )}
@@ -399,7 +395,7 @@ function SidebarUserItem({
   isSelected,
   isSelectionMode
 }: {
-  user: any;
+  user: Doc<"users">;
   onClick: () => void;
   isSelected?: boolean;
   isSelectionMode?: boolean;
@@ -411,8 +407,8 @@ function SidebarUserItem({
     >
       <div className={`absolute left-0 top-0 bottom-0 w-[4px] transition-opacity ${isSelected || isSelectionMode ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} style={{ backgroundColor: 'var(--accent)' }} />
 
-      <div className="relative shrink-0">
-        <img src={user.image} className="h-12 w-12 rounded-full object-cover" alt={user.name} />
+      <div className="relative shrink-0 overflow-hidden rounded-full">
+        <Image src={user.image} width={48} height={48} unoptimized className="h-12 w-12 rounded-full object-cover" alt={user.name} />
         {isSelectionMode && isSelected && (
           <div className="absolute -top-1 -right-1 h-5 w-5 rounded-full text-white flex items-center justify-center border-2 themed-border animate-in zoom-in duration-200" style={{ backgroundColor: 'var(--accent)' }}>
             <CheckCircle2 className="h-3 w-3" />

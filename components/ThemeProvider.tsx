@@ -18,9 +18,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const savedTheme = localStorage.getItem("tars-chat-theme") as Theme;
         if (savedTheme) {
-            setThemeState(savedTheme);
+            // Asynchronous state update to avoid Cascading renders warning
+            Promise.resolve().then(() => {
+                setThemeState(savedTheme);
+            });
         }
-        setMounted(true);
+        // Asynchronous state update to avoid Cascading renders warning
+        Promise.resolve().then(() => {
+            setMounted(true);
+        });
     }, []);
 
     const setTheme = (newTheme: Theme) => {

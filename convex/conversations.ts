@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 
 export const getOrCreateConversation = mutation({
   args: { otherUserId: v.id("users") },
@@ -348,7 +349,12 @@ export const updateGroupDetails = mutation({
       throw new Error("Only the admin can update group details");
     }
 
-    const updates: any = {};
+    const updates: {
+      name?: string;
+      description?: string;
+      icon?: string;
+      storageId?: Id<"_storage">;
+    } = {};
     if (args.name !== undefined) updates.name = args.name;
     if (args.description !== undefined) updates.description = args.description;
 
@@ -411,7 +417,10 @@ export const leaveGroup = mutation({
       return;
     }
 
-    const updates: any = { participants: newParticipants };
+    const updates: {
+      participants: Id<"users">[];
+      adminId?: Id<"users">;
+    } = { participants: newParticipants };
 
     // If I was admin, pick a new one
     if (conversation.adminId === me._id) {
