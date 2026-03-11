@@ -124,7 +124,9 @@ export const searchByEmail = query({
       .filter((user) => user.clerkId !== identity.subject)
       .map((user) => ({
         ...user,
-        isOnline: user.isOnline && (Date.now() - (user.lastSeen ?? 0) < 25000),
+        isOnline: Boolean(user.isOnline) && (Date.now() - (user.lastSeen ?? 0) < 25000),
+        isAI: user.isAI ?? false,
+        lastSeen: user.lastSeen ?? null,
       }));
   },
 });
@@ -141,18 +143,19 @@ export const list = query({
         .query("users")
         .withSearchIndex("search_email", (q) => q.search("email", search))
         .take(10);
-      
-      // If no results from email search, try fuzzy search by name (if implemented)
-      // or just return small subset for now
     } else {
       users = await ctx.db.query("users").take(20);
     }
 
+    if (!users) return [];
+
     return users
-      .filter((user) => user.clerkId !== identity.subject)
+      .filter((user) => user && user.clerkId !== identity.subject)
       .map((user) => ({
         ...user,
-        isOnline: user.isOnline && (Date.now() - (user.lastSeen ?? 0) < 25000),
+        isOnline: Boolean(user.isOnline) && (Date.now() - (user.lastSeen ?? 0) < 25000),
+        isAI: user.isAI ?? false,
+        lastSeen: user.lastSeen ?? null,
       }));
   },
 });

@@ -346,7 +346,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
             <h3 className="text-[15px] font-bold truncate leading-tight transition-colors themed-text">
               {details?.conversation.isGroup ? details?.conversation.name : details?.otherUser?.name}
             </h3>
-            <p className="text-[12px] font-medium transition-colors themed-text-secondary truncate">
+            <p className="text-[12px] font-medium transition-colors themed-text-secondary truncate" suppressHydrationWarning>
               {details?.conversation.isGroup
                 ? `${details?.groupDetails?.participantCount} members`
                 : details?.otherUser?.isAI ? "Tars AI" : (details?.otherUser?.isOnline ? "online" : (details?.otherUser?.lastSeen ? formatLastSeen(details.otherUser.lastSeen) : "offline"))}
@@ -703,6 +703,7 @@ const MessageItem = React.memo(({ msg, prevMsg, me, details, toggleReaction, han
           <div
             className="text-[11px] font-semibold px-4 py-1 rounded-full tracking-wide backdrop-blur-sm shadow-sm"
             style={{ backgroundColor: 'var(--date-bg)', color: 'var(--date-text)' }}
+            suppressHydrationWarning
           >
             {formatDateLabel(msg._creationTime)}
           </div>
