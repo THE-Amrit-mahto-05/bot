@@ -126,7 +126,6 @@ export const searchByEmail = query({
         ...user,
         isOnline: Boolean(user.isOnline) && (Date.now() - (user.lastSeen ?? 0) < 25000),
         isAI: user.isAI ?? false,
-        lastSeen: user.lastSeen ?? null,
       }));
   },
 });
@@ -155,7 +154,6 @@ export const list = query({
         ...user,
         isOnline: Boolean(user.isOnline) && (Date.now() - (user.lastSeen ?? 0) < 25000),
         isAI: user.isAI ?? false,
-        lastSeen: user.lastSeen ?? null,
       }));
   },
 });
