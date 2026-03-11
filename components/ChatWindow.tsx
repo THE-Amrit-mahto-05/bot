@@ -37,8 +37,20 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
 
   const me = useQuery(api.users.getMe);
   const details = useQuery(api.conversations.getChatDetails, { conversationId });
-  const { theme } = useTheme();
   const messages = useQuery(api.messages.list, { conversationId });
+
+  // Stale-while-loading logic
+  const [displayDetails, setDisplayDetails] = useState<any>(undefined);
+  const [displayMessages, setDisplayMessages] = useState<any[] | undefined>(undefined);
+
+  useEffect(() => {
+    if (details !== undefined) setDisplayDetails(details);
+  }, [details]);
+
+  useEffect(() => {
+    if (messages !== undefined) setDisplayMessages(messages);
+  }, [messages]);
+  const { theme } = useTheme();
   const sendMessage = useMutation(api.messages.send);
   const sendAI = useMutation(api.messages.sendAIResponse);
   const removeMessage = useMutation(api.messages.remove);
@@ -51,9 +63,9 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
   const deleteConversation = useMutation(api.conversations.deleteConversation);
 
   const members = useQuery(api.conversations.getGroupMembers, { conversationId });
-  const aiMember = members?.find(m => m?.isAI) || (details?.otherUser?.isAI ? details.otherUser : null);
+  const aiMember = members?.find(m => m?.isAI) || (displayDetails?.otherUser?.isAI ? displayDetails.otherUser : null);
 
-  const isChattingWithAI = details?.otherUser?.clerkId === "ai-bot";
+  const isChattingWithAI = displayDetails?.otherUser?.clerkId === "ai-bot";
 
   useEffect(() => {
     if (messages) {
@@ -150,7 +162,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
     await sendMessage({ body: userMessage, conversationId });
     setTimeout(() => inputRef.current?.focus(), 0);
 
-    const shouldTriggerAI = isChattingWithAI || (details?.conversation.isGroup && userMessage.includes("@Tars"));
+    const shouldTriggerAI = isChattingWithAI || (displayDetails?.conversation.isGroup && userMessage.includes("@Tars"));
 
     if (shouldTriggerAI) {
       let aiText = "";
@@ -169,7 +181,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           .slice(-3)
           .map(m => ({
             role: m.authorId === aiId ? "assistant" : "user",
-            content: details?.conversation?.isGroup && m.authorId !== aiId ? `[${m.authorName}]: ${m.body}` : m.body
+            content: displayDetails?.conversation?.isGroup && m.authorId !== aiId ? `[${m.authorName}]: ${m.body}` : m.body
           })) || [];
 
         const response = await fetch("/api/chat", {
@@ -290,21 +302,9 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
   const isSameDay = (ts1: number, ts2: number) =>
     format(new Date(ts1), "yyyy-MM-dd") === format(new Date(ts2), "yyyy-MM-dd");
 
-  if (details === undefined || messages === undefined) {
-    return (
-      <div className="flex-1 flex items-center justify-center themed-bg themed-text">
-        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--accent)' }} />
-      </div>
-    );
-  }
-
-  if (details === null) {
+  if (displayDetails === null) {
     router.push("/");
-    return (
-      <div className="flex-1 flex items-center justify-center themed-bg themed-text">
-        <Loader2 className="h-8 w-8 animate-spin" style={{ color: 'var(--accent)' }} />
-      </div>
-    );
+    return null; // Don't show anything during redirect
   }
 
   const isWhatsapp = theme === 'whatsapp';
@@ -324,32 +324,37 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
       <div className="h-[60px] px-6 flex items-center justify-between border-b shadow-sm transition-colors duration-200 themed-bg themed-border" style={{ position: 'relative', zIndex: 50 }}>
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="relative cursor-pointer hover:opacity-90 transition-opacity shrink-0"
-            onClick={() => details?.conversation.isGroup && setShowGroupInfo(true)}>
+            onClick={() => displayDetails?.conversation.isGroup && setShowGroupInfo(true)}>
             <div className="overflow-hidden rounded-full">
-              <Image
-                src={details?.conversation.isGroup
-                  ? (details?.conversation.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png")
-                  : details?.otherUser?.image ?? ""}
-                width={40}
-                height={40}
-                unoptimized
-                className="h-10 w-10 rounded-full object-cover border border-black/5"
-                alt="Avatar"
-              />
+              {displayDetails ? (
+                <Image
+                  src={displayDetails.conversation.isGroup
+                    ? (displayDetails.conversation.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png")
+                    : displayDetails.otherUser?.image ?? ""}
+                  width={40}
+                  height={40}
+                  unoptimized
+                  className="h-10 w-10 rounded-full object-cover border border-black/5"
+                  alt="Avatar"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-black/5 animate-pulse" />
+              )}
             </div>
-            {!details?.conversation.isGroup && !details?.otherUser?.isAI && details?.otherUser?.isOnline && (
+            {!displayDetails?.conversation.isGroup && !displayDetails?.otherUser?.isAI && displayDetails?.otherUser?.isOnline && (
               <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 themed-border z-10" style={{ backgroundColor: 'var(--accent)' }} />
             )}
           </div>
           <div className="flex flex-col text-left min-w-0 cursor-pointer"
-            onClick={() => details?.conversation.isGroup && setShowGroupInfo(true)}>
-            <h3 className="text-[15px] font-bold truncate leading-tight transition-colors themed-text">
-              {details?.conversation.isGroup ? details?.conversation.name : details?.otherUser?.name}
+            onClick={() => displayDetails?.conversation.isGroup && setShowGroupInfo(true)}>
+            <h3 className="text-[15px] font-bold truncate leading-tight transition-colors themed-text min-h-[1.25rem]">
+              {displayDetails ? (displayDetails.conversation.isGroup ? displayDetails.conversation.name : displayDetails.otherUser?.name) : ""}
             </h3>
-            <p className="text-[12px] font-medium transition-colors themed-text-secondary truncate" suppressHydrationWarning>
-              {details?.conversation.isGroup
-                ? `${details?.groupDetails?.participantCount} members`
-                : details?.otherUser?.isAI ? "Tars AI" : (details?.otherUser?.isOnline ? "online" : (details?.otherUser?.lastSeen ? formatLastSeen(details.otherUser.lastSeen) : "offline"))}
+            <p className="text-[12px] font-medium transition-colors themed-text-secondary truncate min-h-[1rem]" suppressHydrationWarning>
+              {displayDetails ? (displayDetails.conversation.isGroup
+                ? `${displayDetails.groupDetails?.participantCount} members`
+                : displayDetails.otherUser?.isAI ? "Tars AI" : (displayDetails.otherUser?.isOnline ? "online" : (displayDetails.otherUser?.lastSeen ? formatLastSeen(displayDetails.otherUser.lastSeen) : "offline")))
+                : ""}
             </p>
           </div>
         </div>
@@ -391,7 +396,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
         className="flex-1 overflow-y-auto z-10 custom-scrollbar pb-4 relative"
       >
         <div className="max-w-[1000px] mx-auto p-4 md:p-8 space-y-2">
-          {messages?.length === 0 && !isAiGenerating && (
+          {displayMessages?.length === 0 && !isAiGenerating && (
             <div className="flex flex-col items-center justify-center py-20 opacity-40">
               <div className="p-6 rounded-full shadow-sm mb-4 themed-bg">
                 <Sparkles className="h-12 w-12" style={{ color: 'var(--accent)' }} />
@@ -400,15 +405,15 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
               <p className="text-sm themed-text-secondary">Send a message to start the conversation!</p>
             </div>
           )}
-          {messages?.map((msg, index: number) => {
-            const prevMsg = messages[index - 1];
+          {displayMessages?.map((msg, index: number) => {
+            const prevMsg = displayMessages[index - 1];
             return (
               <MessageItem
                 key={msg._id}
                 msg={msg}
                 prevMsg={prevMsg}
                 me={me}
-                details={details}
+                details={displayDetails!}
                 toggleReaction={toggleReaction}
                 handleCopy={handleCopy}
                 copiedId={copiedId}
@@ -418,7 +423,7 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           })}
 
 
-          {isAiGenerating && messages?.[messages.length - 1]?.body?.trim() !== streamingAIText.trim() && (
+          {isAiGenerating && displayMessages?.[displayMessages.length - 1]?.body?.trim() !== streamingAIText.trim() && (
             <div className="flex w-full justify-start mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex gap-3 items-end max-w-[85%] sm:max-w-[70%]">
                 <div className="relative shrink-0 rounded-full overflow-hidden">
@@ -451,12 +456,12 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
             </div>
           )}
 
-          {details?.conversation?.typingUser && details.conversation.typingUser !== me?._id && !isAiGenerating && (
+          {displayDetails?.conversation?.typingUser && displayDetails.conversation.typingUser !== me?._id && !isAiGenerating && (
             <div className="flex w-full justify-start mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <div className="flex gap-3 items-end max-w-[85%] sm:max-w-[70%]">
                 <div className="relative shrink-0 rounded-full overflow-hidden">
                   <Image
-                    src={details.conversation.typingUserImage || "https://cdn-icons-png.flaticon.com/512/166/166258.png"}
+                    src={displayDetails.conversation.typingUserImage || "https://cdn-icons-png.flaticon.com/512/166/166258.png"}
                     width={32}
                     height={32}
                     unoptimized
@@ -584,10 +589,10 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
         }
       `}</style>
 
-      {showGroupInfo && (
+      {showGroupInfo && displayDetails && (
         <GroupInfo
           conversationId={conversationId}
-          details={details}
+          details={displayDetails}
           onClose={() => setShowGroupInfo(false)}
           onMention={(name) => {
             setInput(prev => prev + `@${name} `);
