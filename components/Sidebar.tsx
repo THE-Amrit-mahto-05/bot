@@ -59,12 +59,15 @@ export function Sidebar() {
       return;
     }
     const conversationId = await startChat({ otherUserId: user._id });
-    router.push(`/?chat=${conversationId}`);
+    router.push(`/?chat=${conversationId}&n=${encodeURIComponent(user.name)}&img=${encodeURIComponent(user.image)}`);
     setSearch("");
   };
 
-  const handleChatClick = (conversationId: Id<"conversations">) => {
-    router.push(`/?chat=${conversationId}`);
+  const handleChatClick = (conversationId: Id<"conversations">, name?: string, img?: string) => {
+    let url = `/?chat=${conversationId}`;
+    if (name) url += `&n=${encodeURIComponent(name)}`;
+    if (img) url += `&img=${encodeURIComponent(img)}`;
+    router.push(url);
   };
 
   const handleCreateGroup = async () => {
@@ -85,7 +88,7 @@ export function Sidebar() {
     setSelectedUsers([]);
     setIsSelectionMode(false);
     setSearch("");
-    router.push(`/?chat=${conversationId}`);
+    router.push(`/?chat=${conversationId}&n=${encodeURIComponent(finalName)}&img=${encodeURIComponent(storageId ? "" : groupIcon)}`);
   };
 
 
@@ -171,7 +174,7 @@ export function Sidebar() {
                     (c.isGroup && c.name?.toLowerCase().includes(search.toLowerCase())) ||
                     (!c.isGroup && c.otherUser?.name.toLowerCase().includes(search.toLowerCase()))
                   ).map(conv => (
-                    <SidebarChatItem key={conv._id} conversation={conv} onClick={() => handleChatClick(conv._id)} />
+                    <SidebarChatItem key={conv._id} conversation={conv} onClick={() => handleChatClick(conv._id, conv.isGroup ? conv.name : conv.otherUser?.name, conv.isGroup ? (conv.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png") : conv.otherUser?.image)} />
                   ))}
                 </>
               )}
@@ -216,7 +219,7 @@ export function Sidebar() {
               </div>
             ) : (conversations && conversations.length > 0) ? (
               conversations.map((conv) => (
-                <SidebarChatItem key={conv._id} conversation={conv} onClick={() => handleChatClick(conv._id)} />
+                <SidebarChatItem key={conv._id} conversation={conv} onClick={() => handleChatClick(conv._id, conv.isGroup ? conv.name : conv.otherUser?.name, conv.isGroup ? (conv.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png") : conv.otherUser?.image)} />
               ))
             ) : (
               <div className="flex flex-col items-center justify-center py-16 px-6 text-center animate-in fade-in zoom-in-95 duration-300">

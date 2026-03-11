@@ -10,7 +10,7 @@ import { format, isToday, isYesterday, isThisYear } from "date-fns";
 
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTheme } from "./ThemeProvider";
 import Image from "next/image";
 import { PRESET_ICONS } from "./types";
@@ -19,6 +19,10 @@ import { PRESET_ICONS } from "./types";
 
 export function ChatWindow({ conversationId }: { conversationId: Id<"conversations"> }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialName = searchParams.get("n");
+  const initialImg = searchParams.get("img");
+
   const [input, setInput] = useState("");
   const [isAiGenerating, setIsAiGenerating] = useState(false);
   const [streamingAIText, setStreamingAIText] = useState("");
@@ -326,11 +330,13 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           <div className="relative cursor-pointer hover:opacity-90 transition-opacity shrink-0"
             onClick={() => displayDetails?.conversation.isGroup && setShowGroupInfo(true)}>
             <div className="overflow-hidden rounded-full">
-              {displayDetails ? (
+              {(displayDetails || initialImg) ? (
                 <Image
-                  src={displayDetails.conversation.isGroup
-                    ? (displayDetails.conversation.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png")
-                    : displayDetails.otherUser?.image ?? ""}
+                  src={displayDetails
+                    ? (displayDetails.conversation.isGroup
+                      ? (displayDetails.conversation.icon || "https://cdn-icons-png.flaticon.com/512/166/166258.png")
+                      : displayDetails.otherUser?.image ?? "")
+                    : initialImg!}
                   width={40}
                   height={40}
                   unoptimized
@@ -348,7 +354,9 @@ export function ChatWindow({ conversationId }: { conversationId: Id<"conversatio
           <div className="flex flex-col text-left min-w-0 cursor-pointer"
             onClick={() => displayDetails?.conversation.isGroup && setShowGroupInfo(true)}>
             <h3 className="text-[15px] font-bold truncate leading-tight transition-colors themed-text min-h-[1.25rem]">
-              {displayDetails ? (displayDetails.conversation.isGroup ? displayDetails.conversation.name : displayDetails.otherUser?.name) : ""}
+              {displayDetails
+                ? (displayDetails.conversation.isGroup ? displayDetails.conversation.name : displayDetails.otherUser?.name)
+                : (initialName || "")}
             </h3>
             <p className="text-[12px] font-medium transition-colors themed-text-secondary truncate min-h-[1rem]" suppressHydrationWarning>
               {displayDetails ? (displayDetails.conversation.isGroup
