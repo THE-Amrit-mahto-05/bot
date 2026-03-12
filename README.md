@@ -23,33 +23,6 @@ git clone <repo-url>
 cd Tars-AI
 npm install        
 ```
-
-### Environment variables
-
-Create a `.env.local` file in the project root (it’s ignored by git) and populate the following values:
-
-```env
-# Convex (public URL used by the client) – required
-NEXT_PUBLIC_CONVEX_URL="https://<your-convex>.convex.cloud"
-NEXT_PUBLIC_CONVEX_SITE_URL="https://<your-convex>.convex.site"
-CONVEX_DEPLOYMENT="<env>:<name>"             # e.g. "prod:successful-tern-162"
-
-# Groq API keys – used server‑side
-GROQ_API_KEY="gsk_..."
-GROQ_FALLBACK_API_KEY="gsk_..."
-
-# Clerk authentication
-CLERK_JWT_ISSUER_DOMAIN="https://<your-clerk>.clerk.accounts.dev"
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
-CLERK_SECRET_KEY="sk_test_..."
-```
-
-> ❗ Do **not** commit this file. Keep your secrets secure.
-
-The application logs the active key and performs a 24‑hour cooldown when the primary key hits its token limit.
-
----
-
 ## Development
 
 Start the development server with hot reload:
