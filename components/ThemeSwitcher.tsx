@@ -93,12 +93,12 @@ export function ThemeSwitcher({ isOpen, onClose }: { isOpen: boolean; onClose: (
                 onMouseLeave={() => setHoveredTheme(null)}
                 className={`group relative overflow-hidden rounded-2xl p-4 transition-all duration-300 transform ${
                   theme === themeOption.id
-                    ? "ring-2 scale-105"
+                    ? "scale-105"
                     : "hover:scale-102 cursor-pointer"
                 }`}
                 style={{
-                  ringColor: "var(--accent)",
                   backgroundColor: theme === themeOption.id ? "var(--bg-chat)" : "var(--bg-message)",
+                  boxShadow: theme === themeOption.id ? `0 0 0 2px var(--accent)` : "none",
                 }}
               >
                 {/* Background gradient indicator */}
