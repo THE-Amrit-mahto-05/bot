@@ -6,8 +6,10 @@ import { ConvexReactClient } from "convex/react";
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
 
 if (!convexUrl) {
-  console.error("NEXT_PUBLIC_CONVEX_URL is not defined. Please check your environment variables.");
-} else if (convexUrl.includes("127.0.0.1") || convexUrl.includes("localhost")) {
+    console.warn(
+      "Missing NEXT_PUBLIC_CONVEX_URL. Please make sure to add it to your .env.local file",
+    );
+  } else if (convexUrl.includes("127.0.0.1") || convexUrl.includes("localhost")) {
   if (typeof window !== "undefined" && !window.location.hostname.includes("localhost")) {
     console.warn(
       "The application is using a local Convex URL (" + convexUrl + ") in a non-local environment (" + window.location.hostname + "). " +

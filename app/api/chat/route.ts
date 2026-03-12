@@ -45,10 +45,10 @@ async function validateKey(apiKey: string, messages: any[]): Promise<boolean> {
       }),
     });
     if (res.status === 429) {
-      console.warn(`🔑 Preflight FAILED: key ${apiKey.slice(0, 15)}... daily quota too low`);
+      console.warn(`Preflight FAILED: key ${apiKey.slice(0, 15)}... daily quota too low`);
       return false;
     }
-    console.log(`✅ Preflight PASSED: key ${apiKey.slice(0, 15)}...`);
+    console.log(`Preflight PASSED: key ${apiKey.slice(0, 15)}...`);
     return true;
   } catch (err) {
     console.error('Preflight fetch error:', err);
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     if (keyTimeout > 0 && Date.now() > keyTimeout) {
-      console.log("🔄 24hr cooldown expired. Resetting to PRIMARY key.");
+      console.log("24hr cooldown expired. Resetting to PRIMARY key.");
       activeKey = 'PRIMARY';
       keyTimeout = 0;
     }
@@ -69,7 +69,7 @@ export async function POST(req: Request) {
     const primaryKey = process.env.GROQ_API_KEY!;
     const fallbackKey = process.env.GROQ_FALLBACK_API_KEY!;
 
-    console.log(`🔑 Active: [${activeKey}] | Primary: ${primaryKey?.slice(0, 15)}... | Fallback: ${fallbackKey?.slice(0, 15)}...`);
+    console.log(`Active: [${activeKey}] | Primary: ${primaryKey?.slice(0, 15)}... | Fallback: ${fallbackKey?.slice(0, 15)}...`);
 
     const primaryGroq = createGroq({ apiKey: primaryKey });
     const fallbackGroq = createGroq({ apiKey: fallbackKey });
@@ -83,14 +83,14 @@ export async function POST(req: Request) {
       const prev = activeKey;
       activeKey = activeKey === 'PRIMARY' ? 'FALLBACK' : 'PRIMARY';
       keyTimeout = Date.now() + TWENTY_FOUR_HOURS_MS;
-      console.warn(`⚠️ [${prev}] exhausted! Switching to [${activeKey}] for 24hrs`);
+      console.warn(`[${prev}] exhausted! Switching to [${activeKey}] for 24hrs`);
 
       activeGroq = activeKey === 'PRIMARY' ? primaryGroq : fallbackGroq;
       activeApiKey = activeKey === 'PRIMARY' ? primaryKey : fallbackKey;
 
       const isNewValid = await validateKey(activeApiKey, messages);
       if (!isNewValid) {
-        console.warn("❌ Both accounts exhausted! Falling back to llama-3.1-8b-instant...");
+        console.warn(" Both accounts exhausted! Falling back to llama-3.1-8b-instant...");
         const res8b = await streamText({
           model: primaryGroq('llama-3.1-8b-instant'),
           temperature: 0.6,
