@@ -153,16 +153,39 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto custom-sidebar-scrollbar">
         {isSelectionMode ? (
           <div className="py-1">
-            {users?.map((user) => (
-              <SidebarUserItem
-                key={user._id}
-                user={user}
-                isSelected={selectedUsers.includes(user._id)}
-                isSelectionMode={true}
-                conversations={conversations}
-                onClick={() => handleUserClick(user)}
-              />
-            ))}
+            {/* In group mode: show conversation partners when no search, search results when searching */}
+            {(() => {
+              const groupCandidates = search.trim().length > 0
+                ? users  // search results from api.users.list
+                : conversations
+                    ?.filter((c) => !c.isGroup && c.otherUser)
+                    .map((c) => c.otherUser as Doc<"users">);
+              if (!groupCandidates || groupCandidates.length === 0) {
+                return (
+                  <div className="flex flex-col items-center justify-center py-8 px-4 text-center animate-in fade-in zoom-in-95 duration-300">
+                    <div className="p-3 rounded-full bg-black/5 mb-3">
+                      <Users className="h-7 w-7 opacity-20" />
+                    </div>
+                    <p className="text-sm font-medium themed-text">
+                      {search.trim().length > 0 ? "No users found" : "No conversations yet"}
+                    </p>
+                    <p className="text-xs themed-text-secondary mt-1">
+                      {search.trim().length > 0 ? "Check the email and try again." : "Start a chat first, then create a group."}
+                    </p>
+                  </div>
+                );
+              }
+              return groupCandidates.map((user) => (
+                <SidebarUserItem
+                  key={user._id}
+                  user={user}
+                  isSelected={selectedUsers.includes(user._id)}
+                  isSelectionMode={true}
+                  conversations={conversations}
+                  onClick={() => handleUserClick(user)}
+                />
+              ));
+            })()}
           </div>
         ) : search.trim() !== "" ? (
           <div className="py-1">
